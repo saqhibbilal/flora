@@ -1,0 +1,6 @@
+{
+  "name": "Nursery Marketplace",
+  "description": "A high-fidelity prototype of a b2b2c nursery marketplace in Saudi Arabia, featuring silent nursery matching, multi-persona portals, and ZATCA-compliant tax invoice simulations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

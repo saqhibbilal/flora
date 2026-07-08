@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Jost", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Jost", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  font-family: "Jost", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Brand green scrollbar (applies app-wide) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5c09 transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #4b5c09;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #3d4c07;
+}
+
+/* Custom scrollbar clean details (opt-out for specific scroll areas) */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
