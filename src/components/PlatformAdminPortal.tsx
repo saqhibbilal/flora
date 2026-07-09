@@ -21,9 +21,17 @@ import {
   Coins,
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut,
+  Mail,
+  Globe,
+  UserCheck,
+  Truck,
+  Ticket,
+  Tag
 } from 'lucide-react';
 import { Product, Order, NurseryRegistration, Nursery } from '../types';
+import { SAUDI_CITIES } from '../data';
 
 interface PlatformAdminPortalProps {
   products: Product[];
@@ -50,14 +58,71 @@ export default function PlatformAdminPortal({
   const [activeTab, setActiveTab] = useState<'analytics' | 'registrations' | 'orders' | 'wallets' | 'catalog' | 'config'>('analytics');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Interactive Configuration Parameters State
-  const [zatcaVatRate, setZatcaVatRate] = useState(15.0);
-  const [proximityLimit, setProximityLimit] = useState(5.0);
+  // Platform admin settings state
   const [platformFeeCut, setPlatformFeeCut] = useState(15.0);
-  const [nurseryApprovalMode, setNurseryApprovalMode] = useState<'manual' | 'automatic'>('manual');
-  const [sandboxLogging, setSandboxLogging] = useState(true);
   const [minSettlementAmount, setMinSettlementAmount] = useState(500);
+  const [settlementFrequency, setSettlementFrequency] = useState<'weekly' | 'biweekly' | 'monthly'>('weekly');
+  const [nurseryApprovalMode, setNurseryApprovalMode] = useState<'manual' | 'automatic'>('manual');
+  const [welcomeEmailEnabled, setWelcomeEmailEnabled] = useState(true);
+  const [requireCrDocument, setRequireCrDocument] = useState(true);
+  const [requireVatCertificate, setRequireVatCertificate] = useState(true);
+  const [marketplaceName, setMarketplaceName] = useState('Flora Portals');
+  const [supportEmail, setSupportEmail] = useState('support@floraportals.sa');
+  const [supportPhone, setSupportPhone] = useState('+966 11 234 5678');
+  const [operatingHours, setOperatingHours] = useState('Sun–Thu, 9:00 AM – 6:00 PM AST');
+  const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(250);
+  const [maxItemsPerOrder, setMaxItemsPerOrder] = useState(20);
+  const [enabledCities, setEnabledCities] = useState<string[]>(['Riyadh', 'Jeddah', 'Dammam', 'Al-Ahsa']);
+  const [listingsRequireApproval, setListingsRequireApproval] = useState(true);
+  const [nurseriesSetOwnPrices, setNurseriesSetOwnPrices] = useState(true);
+  const [cancellationWindowHours, setCancellationWindowHours] = useState(2);
+  const [ratingsEnabled, setRatingsEnabled] = useState(true);
+  const [returnPolicyDays, setReturnPolicyDays] = useState(7);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponDiscount, setCouponDiscount] = useState('10');
+  const [couponMinOrder, setCouponMinOrder] = useState('150');
+  const [coupons, setCoupons] = useState([
+    { id: 'c1', code: 'GREEN20', discount: '20%', minOrder: 200, expiry: '2026-12-31', status: 'Active' as const, uses: 142 },
+    { id: 'c2', code: 'RIYADH50', discount: '50 SAR', minOrder: 300, expiry: '2026-09-30', status: 'Active' as const, uses: 28 },
+    { id: 'c3', code: 'WELCOME15', discount: '15%', minOrder: 100, expiry: '2026-06-01', status: 'Expired' as const, uses: 891 },
+  ]);
   const [showConfigSaved, setShowConfigSaved] = useState(false);
+
+  const toggleCity = (city: string) => {
+    setEnabledCities(prev =>
+      prev.includes(city) ? prev.filter(c => c !== city) : [...prev, city]
+    );
+    setShowConfigSaved(false);
+  };
+
+  const handleAddCoupon = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponCode.trim()) return;
+    const discount = couponDiscount.includes('%') || couponDiscount.includes('SAR')
+      ? couponDiscount
+      : `${couponDiscount}%`;
+    setCoupons(prev => [
+      {
+        id: `c-${Date.now()}`,
+        code: couponCode.trim().toUpperCase(),
+        discount,
+        minOrder: parseInt(couponMinOrder, 10) || 0,
+        expiry: '2026-12-31',
+        status: 'Active',
+        uses: 0,
+      },
+      ...prev,
+    ]);
+    setCouponCode('');
+    setCouponDiscount('10');
+    setCouponMinOrder('150');
+    setShowConfigSaved(false);
+  };
+
+  const toggleSetting = (setter: React.Dispatch<React.SetStateAction<boolean>>, value: boolean) => {
+    setter(!value);
+    setShowConfigSaved(false);
+  };
 
   // Stats calculation
   const totalGMV = orders.reduce((sum, o) => sum + o.totalAmount, 0);
@@ -392,20 +457,16 @@ export default function PlatformAdminPortal({
           </nav>
         </div>
 
-        {/* Global Compliance box */}
-        {!sidebarCollapsed && (
-          <div className="p-4 m-4 bg-[#5a6b10]/30 border border-[#5a6b10]/60 rounded">
-            <div className="flex items-start space-x-2">
-              <Percent className="w-4 h-4 text-[#a3b361] shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Unified VAT Settings</h4>
-                <p className="text-[10px] text-[#d1dbb0] leading-relaxed">
-                  National Tax Authority (ZATCA) rate fixed at 15.0%. Dynamic nursery allocation logs generated for security auditing.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="p-4 mt-auto border-t border-[#5a6b10]/50">
+          <button
+            onClick={() => window.location.reload()}
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'space-x-2 justify-center'} px-3 py-2 text-xs font-bold rounded cursor-pointer transition-colors bg-[#5a6b10] text-white hover:opacity-90 shadow-sm`}
+            title="Log Out"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            {!sidebarCollapsed && <span>Log Out</span>}
+          </button>
+        </div>
       </div>
 
       {/* Main Panel */}
@@ -714,236 +775,415 @@ export default function PlatformAdminPortal({
           </div>
         )}
 
-        {/* TAB: SYSTEM PARAMETERS & LOGISTICAL CONFIG */}
+        {/* TAB: PLATFORM ADMIN SETTINGS */}
         {activeTab === 'config' && (
           <div className="space-y-8">
             <div className="border-b border-gray-200 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-xl font-bold text-gray-900 uppercase">Unified System Configuration</h1>
-                <p className="text-xs text-gray-500 font-medium">Configure national tax compliance parameters, local matchmaker algorithms, and platform transaction rules.</p>
+                <h1 className="text-xl font-bold text-gray-900 uppercase">Platform Settings</h1>
+                <p className="text-xs text-gray-500 font-medium">Manage marketplace operations, partner rules, commercial terms, and promotional offers.</p>
               </div>
-              <span className="self-start sm:self-auto px-2.5 py-1 text-[10px] font-mono font-bold uppercase rounded bg-slate-100 border border-slate-200 text-slate-800">
-                System Schema: v2.4.1
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2.5 py-1 text-[10px] font-bold uppercase rounded bg-green-50 border border-green-200 text-green-800">
+                  VAT 15% — ZATCA Compliant
+                </span>
+                <span className="px-2.5 py-1 text-[10px] font-mono font-bold uppercase rounded bg-slate-100 border border-slate-200 text-slate-800">
+                  v2.4.1
+                </span>
+              </div>
             </div>
 
             {showConfigSaved && (
               <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-lg flex items-start space-x-3 shadow-sm">
                 <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="text-xs font-bold uppercase tracking-wider">Parameters Flushed to Registry</p>
+                  <p className="text-xs font-bold uppercase tracking-wider">Settings Saved</p>
                   <p className="text-[11px] text-emerald-700 font-semibold leading-relaxed">
-                    All modified dispatch radii, escrow levels, and ZATCA compliance settings were successfully written to the cluster. All new checkouts will run under these parameters.
+                    Platform configuration updated. New orders, partner onboarding, and checkout will follow these rules.
                   </p>
                 </div>
               </div>
             )}
 
-            <form 
+            <form
               onSubmit={(e) => {
                 e.preventDefault();
                 setShowConfigSaved(true);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-                setTimeout(() => {
-                  setShowConfigSaved(false);
-                }, 5000);
+                setTimeout(() => setShowConfigSaved(false), 5000);
               }}
               className="space-y-8"
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
-                {/* Section: ZATCA National Tax Compliance */}
-                <div className="bg-white border border-gray-200 p-6 rounded-lg space-y-6 shadow-sm">
+
+                {/* Platform Identity */}
+                <div className="bg-white border border-gray-200 p-6 rounded-lg space-y-5 shadow-sm">
                   <div className="border-b border-gray-100 pb-3 flex items-center space-x-2">
-                    <Percent className="w-4 h-4 text-[#4b5c09]" />
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">
-                      ZATCA e-Invoice Compliance
-                    </h3>
+                    <Globe className="w-4 h-4 text-[#4b5c09]" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">Platform Identity</h3>
                   </div>
-
-                  <div className="space-y-4 text-xs">
-                    <div className="space-y-1.5">
-                      <label className="block font-bold text-gray-600 uppercase tracking-wide text-[10px]">Unified VAT Rate (%)</label>
-                      <div className="flex space-x-2">
-                        <input 
-                          type="number" 
-                          step="0.1"
-                          required
-                          value={zatcaVatRate}
-                          onChange={(e) => {
-                            setZatcaVatRate(parseFloat(e.target.value));
-                            setShowConfigSaved(false);
-                          }}
-                          className="w-full bg-gray-50 border border-gray-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#4b5c09] rounded text-xs font-mono font-bold"
-                        />
-                        <span className="bg-gray-100 border border-gray-200 px-3 py-2 text-gray-500 font-bold rounded">
-                          SAR
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-gray-400 font-semibold">
-                        Strictly compiled on all platform transactions in accordance with Saudi Tax Regulations (default 15.0%).
-                      </p>
+                  <div className="space-y-3 text-xs">
+                    <div className="space-y-1">
+                      <label className="block font-bold text-gray-600 text-[10px] uppercase">Marketplace Display Name</label>
+                      <input
+                        type="text"
+                        value={marketplaceName}
+                        onChange={(e) => { setMarketplaceName(e.target.value); setShowConfigSaved(false); }}
+                        className="w-full bg-gray-50 border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] text-xs font-semibold"
+                      />
                     </div>
+                    <div className="space-y-1">
+                      <label className="block font-bold text-gray-600 text-[10px] uppercase">Support Email</label>
+                      <div className="relative">
+                        <Mail className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="email"
+                          value={supportEmail}
+                          onChange={(e) => { setSupportEmail(e.target.value); setShowConfigSaved(false); }}
+                          className="w-full bg-gray-50 border border-gray-200 pl-9 pr-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] text-xs"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block font-bold text-gray-600 text-[10px] uppercase">Support Phone</label>
+                      <input
+                        type="text"
+                        value={supportPhone}
+                        onChange={(e) => { setSupportPhone(e.target.value); setShowConfigSaved(false); }}
+                        className="w-full bg-gray-50 border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] text-xs font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block font-bold text-gray-600 text-[10px] uppercase">Operating Hours</label>
+                      <input
+                        type="text"
+                        value={operatingHours}
+                        onChange={(e) => { setOperatingHours(e.target.value); setShowConfigSaved(false); }}
+                        className="w-full bg-gray-50 border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
 
-                    <div className="pt-2">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <label className="block font-bold text-gray-700 text-xs">ZATCA Sandbox Telemetry Logging</label>
-                          <p className="text-[10px] text-gray-400 font-semibold">Redirect cryptographic ledger payloads to Sandbox for real-time audit verification.</p>
-                        </div>
+                {/* Partner Onboarding */}
+                <div className="bg-white border border-gray-200 p-6 rounded-lg space-y-5 shadow-sm">
+                  <div className="border-b border-gray-100 pb-3 flex items-center space-x-2">
+                    <UserCheck className="w-4 h-4 text-[#4b5c09]" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">Partner Onboarding</h3>
+                  </div>
+                  <div className="space-y-4 text-xs">
+                    <div className="space-y-1">
+                      <label className="block font-bold text-gray-600 text-[10px] uppercase">Registration Approval</label>
+                      <select
+                        value={nurseryApprovalMode}
+                        onChange={(e) => { setNurseryApprovalMode(e.target.value as 'manual' | 'automatic'); setShowConfigSaved(false); }}
+                        className="w-full bg-gray-50 border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] text-xs font-semibold text-gray-700"
+                      >
+                        <option value="manual">Manual review by platform admin</option>
+                        <option value="automatic">Auto-approve after document upload</option>
+                      </select>
+                    </div>
+                    {[
+                      { label: 'Send welcome email on approval', value: welcomeEmailEnabled, setter: setWelcomeEmailEnabled },
+                      { label: 'Require Commercial Registration (CR)', value: requireCrDocument, setter: setRequireCrDocument },
+                      { label: 'Require ZATCA VAT certificate', value: requireVatCertificate, setter: setRequireVatCertificate },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center justify-between">
+                        <span className="font-semibold text-gray-700">{item.label}</span>
                         <button
                           type="button"
-                          onClick={() => {
-                            setSandboxLogging(!sandboxLogging);
-                            setShowConfigSaved(false);
-                          }}
-                          className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                            sandboxLogging ? 'bg-[#4b5c09]' : 'bg-gray-200'
+                          onClick={() => toggleSetting(item.setter, item.value)}
+                          className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                            item.value ? 'bg-[#4b5c09]' : 'bg-gray-200'
                           }`}
                         >
-                          <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                            sandboxLogging ? 'translate-x-5' : 'translate-x-0'
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ${
+                            item.value ? 'translate-x-5' : 'translate-x-0'
                           }`} />
                         </button>
                       </div>
-                    </div>
-
-                    <div className="bg-gray-50 p-3 border border-gray-100 rounded space-y-2">
-                      <div className="flex justify-between items-center text-[10px] font-mono">
-                        <span className="text-gray-500">Cryptographic Integration SHA-256</span>
-                        <span className="text-[#4b5c09] font-bold">SECURE_VERIFIED</span>
-                      </div>
-                      <div className="flex justify-between items-center text-[10px] font-mono">
-                        <span className="text-gray-500">Auto-Report Period</span>
-                        <span className="text-gray-700 font-bold">EndOfQuarter [Active]</span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Section: Logistical Dispatch Engine */}
-                <div className="bg-white border border-gray-200 p-6 rounded-lg space-y-6 shadow-sm">
-                  <div className="border-b border-gray-100 pb-3 flex items-center space-x-2">
-                    <Cpu className="w-4 h-4 text-[#4b5c09]" />
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">
-                      Intelligent Dispatch Algorithm
-                    </h3>
-                  </div>
-
-                  <div className="space-y-4 text-xs">
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-wide text-gray-600">
-                        <span>Fulfillment Proximity Limit</span>
-                        <span className="font-mono text-[#4b5c09] text-xs">{proximityLimit} km</span>
-                      </div>
-                      <input 
-                        type="range" 
-                        min="1" 
-                        max="50" 
-                        step="0.5"
-                        value={proximityLimit}
-                        onChange={(e) => {
-                          setProximityLimit(parseFloat(e.target.value));
-                          setShowConfigSaved(false);
-                        }}
-                        className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#4b5c09]"
-                      />
-                      <p className="text-[10px] text-gray-400 font-semibold">
-                        Define maximum radius for matching customers with local registered nursery crops. Decreasing this values guarantees lower shipping stress but might restrict crop availability.
-                      </p>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="block font-bold text-gray-600 uppercase tracking-wide text-[10px]">Fulfillment Allocation Priority</label>
-                      <select 
-                        value={nurseryApprovalMode}
-                        onChange={(e) => {
-                          setNurseryApprovalMode(e.target.value as 'manual' | 'automatic');
-                          setShowConfigSaved(false);
-                        }}
-                        className="w-full bg-gray-50 border border-gray-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#4b5c09] rounded text-xs font-semibold text-gray-700"
-                      >
-                        <option value="manual">Primary: Proximity Sourcing, Secondary: Regional Hub</option>
-                        <option value="automatic">Absolute Least-Transport Proximity Matchmaker</option>
-                      </select>
-                      <p className="text-[10px] text-gray-400 font-semibold">
-                        Strategy applied when matching bulk crops for instant national logistics dispatch.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section: Financial Cut & Settlements */}
-                <div className="bg-white border border-gray-200 p-6 rounded-lg space-y-6 shadow-sm lg:col-span-2">
+                {/* Commercial & Settlements */}
+                <div className="bg-white border border-gray-200 p-6 rounded-lg space-y-5 shadow-sm">
                   <div className="border-b border-gray-100 pb-3 flex items-center space-x-2">
                     <Coins className="w-4 h-4 text-[#4b5c09]" />
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">
-                      Platform Commercial Cut & Settlement Bounds
-                    </h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">Commercial & Settlements</h3>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
-                    <div className="space-y-1.5">
-                      <label className="block font-bold text-gray-600 uppercase tracking-wide text-[10px]">Platform Commission Fee (%)</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div className="space-y-1">
+                      <label className="block font-bold text-gray-600 text-[10px] uppercase">Platform Commission (%)</label>
                       <div className="flex space-x-2">
-                        <input 
-                          type="number" 
-                          min="0" 
-                          max="50" 
+                        <input
+                          type="number"
+                          min="0"
+                          max="50"
                           step="0.5"
-                          required
                           value={platformFeeCut}
-                          onChange={(e) => {
-                            setPlatformFeeCut(parseFloat(e.target.value));
-                            setShowConfigSaved(false);
-                          }}
-                          className="w-full bg-gray-50 border border-gray-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#4b5c09] rounded text-xs font-mono font-bold"
+                          onChange={(e) => { setPlatformFeeCut(parseFloat(e.target.value)); setShowConfigSaved(false); }}
+                          className="w-full bg-gray-50 border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] font-mono font-bold"
                         />
-                        <span className="bg-gray-100 border border-gray-200 px-3 py-2 text-gray-500 font-bold rounded">
-                          %
-                        </span>
+                        <span className="bg-gray-100 border border-gray-200 px-3 py-2 text-gray-500 font-bold rounded">%</span>
                       </div>
-                      <p className="text-[10px] text-gray-400 font-semibold">
-                        Percentage withheld from nursery sales for payment gateway handling, routing dispatch engineering, and VAT collection services (standard 15%).
-                      </p>
                     </div>
-
-                    <div className="space-y-1.5">
-                      <label className="block font-bold text-gray-600 uppercase tracking-wide text-[10px]">Min Settlement Threshold (SAR)</label>
+                    <div className="space-y-1">
+                      <label className="block font-bold text-gray-600 text-[10px] uppercase">Min Payout Threshold (SAR)</label>
                       <div className="flex space-x-2">
-                        <input 
-                          type="number" 
-                          min="100" 
-                          max="10000" 
+                        <input
+                          type="number"
+                          min="100"
                           step="100"
-                          required
                           value={minSettlementAmount}
-                          onChange={(e) => {
-                            setMinSettlementAmount(parseInt(e.target.value));
-                            setShowConfigSaved(false);
-                          }}
-                          className="w-full bg-gray-50 border border-gray-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#4b5c09] rounded text-xs font-mono font-bold"
+                          onChange={(e) => { setMinSettlementAmount(parseInt(e.target.value, 10)); setShowConfigSaved(false); }}
+                          className="w-full bg-gray-50 border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] font-mono font-bold"
                         />
-                        <span className="bg-gray-100 border border-gray-200 px-3 py-2 text-gray-500 font-bold rounded">
-                          SAR
-                        </span>
+                        <span className="bg-gray-100 border border-gray-200 px-3 py-2 text-gray-500 font-bold rounded">SAR</span>
                       </div>
-                      <p className="text-[10px] text-gray-400 font-semibold">
-                        Minimum wallet balance required for registered nurseries to request a direct financial wire to their Saudi Bank Account.
-                      </p>
+                    </div>
+                    <div className="space-y-1 sm:col-span-2">
+                      <label className="block font-bold text-gray-600 text-[10px] uppercase">Settlement Frequency</label>
+                      <select
+                        value={settlementFrequency}
+                        onChange={(e) => { setSettlementFrequency(e.target.value as 'weekly' | 'biweekly' | 'monthly'); setShowConfigSaved(false); }}
+                        className="w-full bg-gray-50 border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] font-semibold text-gray-700"
+                      >
+                        <option value="weekly">Weekly (every Sunday)</option>
+                        <option value="biweekly">Bi-weekly</option>
+                        <option value="monthly">Monthly (1st of month)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Marketplace Operations */}
+                <div className="bg-white border border-gray-200 p-6 rounded-lg space-y-5 shadow-sm">
+                  <div className="border-b border-gray-100 pb-3 flex items-center space-x-2">
+                    <Truck className="w-4 h-4 text-[#4b5c09]" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">Marketplace Operations</h3>
+                  </div>
+                  <div className="space-y-4 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="block font-bold text-gray-600 text-[10px] uppercase">Free Delivery Above (SAR)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="50"
+                          value={freeDeliveryThreshold}
+                          onChange={(e) => { setFreeDeliveryThreshold(parseInt(e.target.value, 10)); setShowConfigSaved(false); }}
+                          className="w-full bg-gray-50 border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] font-mono font-bold"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block font-bold text-gray-600 text-[10px] uppercase">Max Items Per Order</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={maxItemsPerOrder}
+                          onChange={(e) => { setMaxItemsPerOrder(parseInt(e.target.value, 10)); setShowConfigSaved(false); }}
+                          className="w-full bg-gray-50 border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] font-mono font-bold"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block font-bold text-gray-600 text-[10px] uppercase">Enabled Service Cities</label>
+                      <div className="flex flex-wrap gap-2">
+                        {SAUDI_CITIES.map((city) => (
+                          <button
+                            key={city}
+                            type="button"
+                            onClick={() => toggleCity(city)}
+                            className={`px-2.5 py-1 text-[10px] font-bold rounded border cursor-pointer transition-colors ${
+                              enabledCities.includes(city)
+                                ? 'bg-[#4b5c09] text-white border-[#4b5c09]'
+                                : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            {city}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Catalog Governance */}
+                <div className="bg-white border border-gray-200 p-6 rounded-lg space-y-5 shadow-sm">
+                  <div className="border-b border-gray-100 pb-3 flex items-center space-x-2">
+                    <Cpu className="w-4 h-4 text-[#4b5c09]" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">Catalog Governance</h3>
+                  </div>
+                  <div className="space-y-4 text-xs">
+                    {[
+                      { label: 'New nursery listings require admin approval', value: listingsRequireApproval, setter: setListingsRequireApproval },
+                      { label: 'Allow nurseries to set their own prices', value: nurseriesSetOwnPrices, setter: setNurseriesSetOwnPrices },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center justify-between">
+                        <span className="font-semibold text-gray-700">{item.label}</span>
+                        <button
+                          type="button"
+                          onClick={() => toggleSetting(item.setter, item.value)}
+                          className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                            item.value ? 'bg-[#4b5c09]' : 'bg-gray-200'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ${
+                            item.value ? 'translate-x-5' : 'translate-x-0'
+                          }`} />
+                        </button>
+                      </div>
+                    ))}
+                    <p className="text-[10px] text-gray-400 leading-relaxed">
+                      When approval is enabled, new plants added by nursery partners appear as pending until reviewed in Master Catalogue.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Customer Policies */}
+                <div className="bg-white border border-gray-200 p-6 rounded-lg space-y-5 shadow-sm">
+                  <div className="border-b border-gray-100 pb-3 flex items-center space-x-2">
+                    <ShieldCheck className="w-4 h-4 text-[#4b5c09]" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">Customer Policies</h3>
+                  </div>
+                  <div className="space-y-4 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="block font-bold text-gray-600 text-[10px] uppercase">Cancellation Window (hours)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="48"
+                          value={cancellationWindowHours}
+                          onChange={(e) => { setCancellationWindowHours(parseInt(e.target.value, 10)); setShowConfigSaved(false); }}
+                          className="w-full bg-gray-50 border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] font-mono font-bold"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block font-bold text-gray-600 text-[10px] uppercase">Return Policy (days)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="30"
+                          value={returnPolicyDays}
+                          onChange={(e) => { setReturnPolicyDays(parseInt(e.target.value, 10)); setShowConfigSaved(false); }}
+                          className="w-full bg-gray-50 border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] font-mono font-bold"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-gray-700">Enable product & delivery ratings</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleSetting(setRatingsEnabled, ratingsEnabled)}
+                        className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                          ratingsEnabled ? 'bg-[#4b5c09]' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ${
+                          ratingsEnabled ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                      </button>
                     </div>
                   </div>
                 </div>
 
               </div>
 
-              {/* Action Buttons */}
+              {/* Offers & Coupon Management */}
+              <div className="bg-white border border-gray-200 p-6 rounded-lg space-y-5 shadow-sm">
+                <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Ticket className="w-4 h-4 text-[#4b5c09]" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">Offers & Coupon Management</h3>
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">{coupons.filter(c => c.status === 'Active').length} active coupons</span>
+                </div>
+
+                <form onSubmit={handleAddCoupon} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs items-end bg-gray-50 border border-gray-100 p-4 rounded-md">
+                  <div className="space-y-1">
+                    <label className="block font-bold text-gray-600 text-[10px] uppercase">Coupon Code</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. SUMMER25"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      className="w-full bg-white border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] font-mono font-bold uppercase"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block font-bold text-gray-600 text-[10px] uppercase">Discount</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 20%"
+                      value={couponDiscount}
+                      onChange={(e) => setCouponDiscount(e.target.value)}
+                      className="w-full bg-white border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] font-mono font-bold"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block font-bold text-gray-600 text-[10px] uppercase">Min Order (SAR)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={couponMinOrder}
+                      onChange={(e) => setCouponMinOrder(e.target.value)}
+                      className="w-full bg-white border border-gray-200 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#4b5c09] font-mono font-bold"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-[#4b5c09] hover:bg-[#3d4c07] text-white text-xs font-bold rounded-md cursor-pointer flex items-center justify-center space-x-1"
+                  >
+                    <Tag className="w-3.5 h-3.5" />
+                    <span>Add Coupon</span>
+                  </button>
+                </form>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs min-w-[600px]">
+                    <thead>
+                      <tr className="border-b border-gray-200 bg-gray-50 font-bold text-gray-600">
+                        <th className="py-2 px-3">Code</th>
+                        <th className="py-2 px-3">Discount</th>
+                        <th className="py-2 px-3">Min Order</th>
+                        <th className="py-2 px-3">Expiry</th>
+                        <th className="py-2 px-3 text-center">Uses</th>
+                        <th className="py-2 px-3 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {coupons.map((coupon) => (
+                        <tr key={coupon.id} className="border-b border-gray-100 hover:bg-gray-50/50">
+                          <td className="py-3 px-3 font-mono font-bold text-gray-900">{coupon.code}</td>
+                          <td className="py-3 px-3 font-semibold text-[#4b5c09]">{coupon.discount}</td>
+                          <td className="py-3 px-3 font-mono">{coupon.minOrder} SAR</td>
+                          <td className="py-3 px-3 font-mono text-gray-500">{coupon.expiry}</td>
+                          <td className="py-3 px-3 text-center font-mono">{coupon.uses}</td>
+                          <td className="py-3 px-3 text-right">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                              coupon.status === 'Active'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-500'
+                            }`}>
+                              {coupon.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
               <div className="flex justify-end pt-4 border-t border-gray-200">
                 <button
                   type="submit"
                   className="px-6 py-2.5 bg-[#4b5c09] hover:bg-[#3d4c07] text-white text-xs font-bold uppercase tracking-wider rounded-md transition-colors cursor-pointer shadow-sm hover:shadow"
                 >
-                  Save Global System Settings
+                  Save Platform Settings
                 </button>
               </div>
             </form>

@@ -212,6 +212,14 @@ export default function App() {
     setProducts(prev => [...prev, fullProduct]);
   };
 
+  const handleRemoveProduct = (productId: string) => {
+    setProducts(prev => prev.filter(p => p.id !== productId));
+  };
+
+  const handleEditProduct = (productId: string) => {
+    alert("Full edit functionality coming soon. Use 'Adjust Stock' for quick inventory and price changes.");
+  };
+
   const handleUpdateOrderStatus = (orderId: string, status: OrderStatus) => {
     setOrders(prev => prev.map(o => 
       o.id === orderId ? { ...o, status } : o
@@ -439,6 +447,8 @@ export default function App() {
                 setActiveNurseryId={setActiveNurseryId}
                 onUpdateProductStock={handleUpdateProductStock}
                 onAddNurseryProduct={handleAddNurseryProduct}
+                onRemoveProduct={handleRemoveProduct}
+                onEditProduct={handleEditProduct}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
                 onAcceptOrder={handleAcceptOrder}
                 onRejectOrder={handleRejectOrder}

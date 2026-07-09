@@ -21,7 +21,10 @@ import {
   RefreshCw,
   Truck,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Trash2,
+  Pencil,
+  LogOut
 } from 'lucide-react';
 import { Product, Order, Nursery, OrderStatus } from '../types';
 
@@ -33,6 +36,8 @@ interface NurseryPortalProps {
   setActiveNurseryId: (id: string) => void;
   onUpdateProductStock: (productId: string, price: number, stock: number) => void;
   onAddNurseryProduct: (newProduct: Omit<Product, 'id'>) => void;
+  onRemoveProduct: (productId: string) => void;
+  onEditProduct: (productId: string) => void;
   onUpdateOrderStatus: (orderId: string, status: OrderStatus) => void;
   onAcceptOrder: (orderId: string) => void;
   onRejectOrder: (orderId: string) => void;
@@ -49,6 +54,8 @@ export default function NurseryPortal({
   setActiveNurseryId,
   onUpdateProductStock,
   onAddNurseryProduct,
+  onRemoveProduct,
+  onEditProduct,
   onUpdateOrderStatus,
   onAcceptOrder,
   onRejectOrder,
@@ -281,20 +288,16 @@ export default function NurseryPortal({
           </nav>
         </div>
 
-        {/* Nursery compliance details */}
-        {!sidebarCollapsed && (
-          <div className="p-4 m-4 bg-[#5a6b10]/30 border border-[#5a6b10]/60 rounded space-y-2">
-            <div className="text-[10px] font-bold text-white uppercase tracking-wider">Tax Registration Compliance</div>
-            <div className="text-[10px] text-[#d1dbb0] font-mono space-y-1">
-              <div>CR: <span className="text-white font-semibold">{activeNursery.crNumber}</span></div>
-              <div>VAT ID: <span className="text-white font-semibold">{activeNursery.taxId}</span></div>
-              <div className="text-[#a3b361] pt-1 font-semibold flex items-center space-x-1">
-                <span className="inline-block w-1.5 h-1.5 bg-[#a3b361] rounded-full animate-pulse"></span>
-                <span>ZATCA Integration Live</span>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="p-4 mt-auto border-t border-[#5a6b10]/50">
+          <button
+            onClick={() => window.location.reload()}
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'space-x-2 justify-center'} px-3 py-2 text-xs font-bold rounded cursor-pointer transition-colors bg-[#5a6b10] text-white hover:opacity-90 shadow-sm`}
+            title="Log Out"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            {!sidebarCollapsed && <span>Log Out</span>}
+          </button>
+        </div>
       </div>
 
       {/* Main Panel */}
@@ -717,7 +720,23 @@ export default function NurseryPortal({
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 border-t border-gray-100 p-3 flex justify-end">
+                  <div className="bg-gray-50 border-t border-gray-100 p-3 flex flex-wrap items-center justify-end gap-2">
+                    <button
+                      onClick={() => onRemoveProduct(p.id)}
+                      className="px-2 py-1.5 border border-red-200 text-red-600 bg-white hover:bg-red-50 text-[11px] font-bold rounded-md flex items-center space-x-1 cursor-pointer"
+                      title="Remove Product"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span className="hidden xl:inline">Remove</span>
+                    </button>
+                    <button
+                      onClick={() => onEditProduct(p.id)}
+                      className="px-2 py-1.5 border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 text-[11px] font-bold rounded-md flex items-center space-x-1 cursor-pointer"
+                      title="Edit Product Details"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      <span className="hidden xl:inline">Edit</span>
+                    </button>
                     <button
                       onClick={() => {
                         setEditingProduct(p);
@@ -726,7 +745,7 @@ export default function NurseryPortal({
                       }}
                       className="px-2.5 py-1.5 border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 text-[11px] font-bold rounded-md flex items-center space-x-1 cursor-pointer"
                     >
-                      <Edit3 className="w-3 h-3" />
+                      <Edit3 className="w-3.5 h-3.5" />
                       <span>Adjust Stock</span>
                     </button>
                   </div>

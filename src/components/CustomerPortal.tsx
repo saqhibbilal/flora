@@ -22,7 +22,8 @@ import {
   Clock,
   User,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 import { Product, CartItem, Order, OrderStatus } from '../types';
 import { CATEGORIES, SAUDI_CITIES } from '../data';
@@ -285,23 +286,16 @@ export default function CustomerPortal({
           </nav>
         </div>
 
-        {/* VAT Guarantee box */}
-        {!sidebarCollapsed && (
-          <div className="p-4 m-4 bg-[#5a6b10]/30 border border-[#5a6b10]/60 rounded">
-            <div className="flex items-start space-x-2">
-              <ShieldCheck className="w-4 h-4 text-[#a3b361] shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Matched Dispatch</h4>
-                <p className="text-[10px] text-[#d1dbb0] leading-relaxed">
-                  Prices include standard 15% VAT. Partners are allocated dynamically to support local greenery.
-                </p>
-                <p className="text-[9px] text-[#a3b361] font-bold font-mono">
-                  الأسعار تشمل ضريبة القيمة المضافة ١٥٪
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="p-4 mt-auto border-t border-[#5a6b10]/50">
+          <button
+            onClick={() => window.location.reload()}
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'space-x-2 justify-center'} px-3 py-2 text-xs font-bold rounded cursor-pointer transition-colors bg-[#5a6b10] text-white hover:opacity-90 shadow-sm`}
+            title="Log Out"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            {!sidebarCollapsed && <span>Log Out</span>}
+          </button>
+        </div>
       </div>
 
       {/* Main Content Area */}

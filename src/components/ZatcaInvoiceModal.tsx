@@ -66,7 +66,7 @@ export default function ZatcaInvoiceModal({ order, onClose }: ZatcaInvoiceModalP
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
       <div 
         id="zatca-invoice-modal"
-        className="bg-[#d9eda6] text-gray-900 w-full max-w-2xl rounded-xs shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="bg-white text-gray-900 w-full max-w-2xl rounded-xs shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* Header */}
         <div className="bg-[#4b5c09] text-white px-6 py-4 flex justify-between items-center shrink-0">
